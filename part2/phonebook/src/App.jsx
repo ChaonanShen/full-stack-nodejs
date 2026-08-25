@@ -1,4 +1,8 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
+import axios from 'axios'
+
+const url = 'http://localhost:3001/persons'
+
 
 const filterOut = (persons, filterWord) => {
   const filtered = []
@@ -45,12 +49,7 @@ const Persons = ({ persons }) => {
 }
 
 const App = () => {
-  const [persons, setPersons] = useState([
-    { name: 'Arto Hellas', number: '040-123456', id: 1 },
-    { name: 'Ada Lovelace', number: '39-44-5323523', id: 2 },
-    { name: 'Dan Abramov', number: '12-43-234345', id: 3 },
-    { name: 'Mary Poppendieck', number: '39-23-6423122', id: 4 }
-  ])
+  const [persons, setPersons] = useState([])
   const [newName, setNewName] = useState('')
   const [newNumber, setNewNumber] = useState('')
   const [newFilter, setNewFilter] = useState('')
@@ -59,7 +58,12 @@ const App = () => {
   const handleNameChange = (event) => setNewName(event.target.value)
   const handleNumberChange = (event) => setNewNumber(event.target.value)
 
-
+  // 上来读取所有persons 数据
+  useEffect(() => {
+    axios.get(url).then(response => {
+      setPersons(response.data)
+    })
+  }, [])
 
   const addInfo = (event) => {
     event.preventDefault()
@@ -69,9 +73,13 @@ const App = () => {
         return
       }
     }
-    setPersons(persons.concat({ name: newName, number: newNumber }))
-    setNewName('')
-    setNewNumber('')
+
+    const newPerson = { name: newName, number: newNumber }
+    axios.post(url, newPerson).then(response => response.data).then((returnedPerson) => {
+      setPersons(persons.concat(returnedPerson))
+      setNewName('')
+      setNewNumber('')
+    })
   }
 
   const filteredPersons = filterOut(persons, newFilter)
