@@ -1,8 +1,5 @@
 import { useState, useEffect } from 'react'
-import axios from 'axios'
-
-const url = 'http://localhost:3001/persons'
-
+import personServices from './services/persons.js'
 
 const filterOut = (persons, filterWord) => {
   const filtered = []
@@ -60,8 +57,8 @@ const App = () => {
 
   // 上来读取所有persons 数据
   useEffect(() => {
-    axios.get(url).then(response => {
-      setPersons(response.data)
+    personServices.getAllPersons().then(returnedPersons => {
+      setPersons(returnedPersons)
     })
   }, [])
 
@@ -75,7 +72,7 @@ const App = () => {
     }
 
     const newPerson = { name: newName, number: newNumber }
-    axios.post(url, newPerson).then(response => response.data).then((returnedPerson) => {
+    personServices.createPerson(newPerson).then((returnedPerson) => {
       setPersons(persons.concat(returnedPerson))
       setNewName('')
       setNewNumber('')
