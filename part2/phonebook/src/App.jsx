@@ -19,7 +19,31 @@ const Filter = ({ value, onChange }) => {
   )
 }
 
-const PersonForm = ({ addInfo, newName, newNumber, handleNameChange, handleNumberChange }) => {
+// 跟App组件练习就是persons结构
+const PersonForm = ({persons, setPersons}) => {
+  const [newName, setNewName] = useState('')
+  const [newNumber, setNewNumber] = useState('')
+
+  const handleNameChange = (event) => setNewName(event.target.value)
+  const handleNumberChange = (event) => setNewNumber(event.target.value)
+
+  const addInfo = (event) => {
+    event.preventDefault()
+    for (const person of persons) {
+      if (person.name === newName) {
+        alert(`${newName} is already added to phonebook`)
+        return
+      }
+    }
+
+    const newPerson = { name: newName, number: newNumber }
+    personServices.createPerson(newPerson).then((returnedPerson) => {
+      setPersons(persons.concat(returnedPerson))
+      setNewName('')
+      setNewNumber('')
+    })
+  }
+
   return (
     <div>
       <form onSubmit={addInfo}>
@@ -68,13 +92,9 @@ const Persons = ({ filteredPersons, allPersons, setPersons }) => {
 
 const App = () => {
   const [persons, setPersons] = useState([])
-  const [newName, setNewName] = useState('')
-  const [newNumber, setNewNumber] = useState('')
   const [newFilter, setNewFilter] = useState('')
 
   const handleFilterChange = (event) => setNewFilter(event.target.value)
-  const handleNameChange = (event) => setNewName(event.target.value)
-  const handleNumberChange = (event) => setNewNumber(event.target.value)
 
   // 上来读取所有persons 数据
   useEffect(() => {
@@ -83,23 +103,6 @@ const App = () => {
     })
   }, [])
 
-  const addInfo = (event) => {
-    event.preventDefault()
-    for (const person of persons) {
-      if (person.name === newName) {
-        alert(`${newName} is already added to phonebook`)
-        return
-      }
-    }
-
-    const newPerson = { name: newName, number: newNumber }
-    personServices.createPerson(newPerson).then((returnedPerson) => {
-      setPersons(persons.concat(returnedPerson))
-      setNewName('')
-      setNewNumber('')
-    })
-  }
-
   const filteredPersons = filterOut(persons, newFilter)
 
   return (
@@ -107,7 +110,7 @@ const App = () => {
       <h2>Phonebook</h2>
       <Filter value={newFilter} onChange={handleFilterChange} />
       <h2>add a new</h2>
-      <PersonForm addInfo={addInfo} newName={newName} newNumber={newNumber} handleNameChange={handleNameChange} handleNumberChange={handleNumberChange} />
+      <PersonForm persons={persons} setPersons={setPersons} />
       <h2>Numbers</h2>
       <Persons filteredPersons={filteredPersons} allPersons={persons} setPersons={setPersons} />
     </div>
