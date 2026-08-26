@@ -37,10 +37,31 @@ const PersonForm = ({ addInfo, newName, newNumber, handleNameChange, handleNumbe
   )
 }
 
-const Persons = ({ persons }) => {
+const Person = ({ person, persons, setPersons }) => {
+  const onDeletePerson = () => {
+    if (!window.confirm(`Delete ${person.name}?`)) {
+      return
+    }
+    personServices
+      .deletePerson(person.id)
+      .then(() => setPersons(persons.filter(p => p.id !== person.id)))
+      .catch(() => { alert(`${person.name} was already deleted from the server`) })
+
+  }
   return (
     <div>
-      {persons.map((person) => <p key={person.name}>{person.name} {person.number}</p>)}
+      <p key={person.id}>
+        {person.name} {person.number}
+        <button onClick={onDeletePerson}>remove</button>
+      </p>
+    </div>
+  )
+}
+
+const Persons = ({ filteredPersons, allPersons, setPersons }) => {
+  return (
+    <div>
+      {filteredPersons.map((person) => <Person key={person.id} person={person} persons={allPersons} setPersons={setPersons} />)}
     </div>
   )
 }
@@ -88,7 +109,7 @@ const App = () => {
       <h2>add a new</h2>
       <PersonForm addInfo={addInfo} newName={newName} newNumber={newNumber} handleNameChange={handleNameChange} handleNumberChange={handleNumberChange} />
       <h2>Numbers</h2>
-      <Persons persons={filteredPersons} />
+      <Persons filteredPersons={filteredPersons} allPersons={persons} setPersons={setPersons} />
     </div>
   )
 }
