@@ -1,16 +1,6 @@
 import { useState, useEffect } from 'react'
 import personServices from './services/persons.js'
 
-const filterOut = (persons, filterWord) => {
-  const filtered = []
-  for (const person of persons) {
-    if (person.name.toLowerCase().includes(filterWord.toLowerCase())) {
-      filtered.push(person)
-    }
-  }
-  return filtered;
-}
-
 const Filter = ({ value, onChange }) => {
   return (
     <div>
@@ -19,8 +9,8 @@ const Filter = ({ value, onChange }) => {
   )
 }
 
-// 跟App组件练习就是persons结构
-const PersonForm = ({persons, setPersons}) => {
+// 只有 persons 结构需要跨组件，newName/newNumber 这些都是 PersonForm 独享
+const PersonForm = ({ persons, setPersons }) => {
   const [newName, setNewName] = useState('')
   const [newNumber, setNewNumber] = useState('')
 
@@ -61,31 +51,21 @@ const PersonForm = ({persons, setPersons}) => {
   )
 }
 
-const Person = ({ person, persons, setPersons }) => {
-  const onDeletePerson = () => {
-    if (!window.confirm(`Delete ${person.name}?`)) {
-      return
-    }
-    personServices
-      .deletePerson(person.id)
-      .then(() => setPersons(persons.filter(p => p.id !== person.id)))
-      .catch(() => { alert(`${person.name} was already deleted from the server`) })
-
-  }
+const Person = ({ person, onDeletePerson }) => {
   return (
     <div>
-      <p key={person.id}>
+      <p>
         {person.name} {person.number}
-        <button onClick={onDeletePerson}>remove</button>
+        <button onClick={() => onDeletePerson(person)}>remove</button>
       </p>
     </div>
   )
 }
 
-const Persons = ({ filteredPersons, allPersons, setPersons }) => {
+const Persons = ({ persons, onDeletePerson }) => {
   return (
     <div>
-      {filteredPersons.map((person) => <Person key={person.id} person={person} persons={allPersons} setPersons={setPersons} />)}
+      {persons.map((person) => <Person key={person.id} person={person} onDeletePerson={onDeletePerson} />)}
     </div>
   )
 }
@@ -103,7 +83,17 @@ const App = () => {
     })
   }, [])
 
-  const filteredPersons = filterOut(persons, newFilter)
+  const filteredPersons = persons.filter(person => person.name.toLowerCase().includes(newFilter.toLowerCase()))
+
+  const onDeletePerson = (person) => {
+    if (!window.confirm(`Delete ${person.name}?`)) {
+      return
+    }
+    personServices
+      .deletePerson(person.id)
+      .then(() => setPersons(persons.filter(p => p.id !== person.id)))
+      .catch(() => { alert(`${person.name} was already deleted from the server`) })
+  }
 
   return (
     <div>
@@ -112,7 +102,7 @@ const App = () => {
       <h2>add a new</h2>
       <PersonForm persons={persons} setPersons={setPersons} />
       <h2>Numbers</h2>
-      <Persons filteredPersons={filteredPersons} allPersons={persons} setPersons={setPersons} />
+      <Persons persons={filteredPersons} onDeletePerson={onDeletePerson} />
     </div>
   )
 }
