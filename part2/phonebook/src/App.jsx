@@ -17,26 +17,40 @@ const PersonForm = ({ persons, setPersons }) => {
   const handleNameChange = (event) => setNewName(event.target.value)
   const handleNumberChange = (event) => setNewNumber(event.target.value)
 
-  const addInfo = (event) => {
+  const addOnePerson = (event) => {
     event.preventDefault()
-    for (const person of persons) {
-      if (person.name === newName) {
-        alert(`${newName} is already added to phonebook`)
+    const pfound = persons.find(p => p.name === newName)
+    if (pfound) {
+      if (!window.confirm(`${newName} is already added to phonebook, replace the old number with a new one?`)) {
         return
       }
+      // update
+      const newPerson = { name: pfound.name, number: newNumber, id: pfound.id }
+      personServices
+        .updatePerson(pfound.id, newPerson)
+        .then((returnedPerson) => {
+          console.log(returnedPerson)
+          setPersons(persons.map(p => p.name === newName ? newPerson : p)) // 函数式写法总让人感觉过瘾，直接替换掉数组中某个元素
+          setNewName('')
+          setNewNumber('')
+        })
+        .catch(error => console.log(error))
+    } else { // 未出现过的名字
+      const newPerson = { name: newName, number: newNumber }
+      personServices
+        .createPerson(newPerson)
+        .then((returnedPerson) => {
+          setPersons(persons.concat(returnedPerson))
+          setNewName('')
+          setNewNumber('')
+        })
+        .catch(error => console.log(error))
     }
-
-    const newPerson = { name: newName, number: newNumber }
-    personServices.createPerson(newPerson).then((returnedPerson) => {
-      setPersons(persons.concat(returnedPerson))
-      setNewName('')
-      setNewNumber('')
-    })
   }
 
   return (
     <div>
-      <form onSubmit={addInfo}>
+      <form onSubmit={addOnePerson}>
         <div>
           name: <input value={newName} onChange={handleNameChange} />
         </div>
@@ -83,7 +97,7 @@ const App = () => {
     })
   }, [])
 
-  const filteredPersons = persons.filter(person => person.name.toLowerCase().includes(newFilter.toLowerCase()))
+  const filteredPersons = persons.filter(p => p.name.toLowerCase().includes(newFilter.toLowerCase()))
 
   const onDeletePerson = (person) => {
     if (!window.confirm(`Delete ${person.name}?`)) {
