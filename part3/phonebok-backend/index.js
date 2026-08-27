@@ -30,6 +30,16 @@ app.get('/api/persons', (req, rsp) => {
     rsp.json(phonebooks)
 })
 
+app.get('/api/persons/:id', (req, rsp) => {
+    const id = req.params.id 
+    const person = phonebooks.find(p => p.id === id)
+    if (person) {
+        rsp.json(person)
+    } else {
+        rsp.status(404).end()
+    }
+})
+
 app.get('/info', (req, rsp) => {
     rsp.send(`
         <p>Phonebook has info for ${phonebooks.length} people</p>
