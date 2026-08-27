@@ -31,13 +31,34 @@ app.get('/api/persons', (req, rsp) => {
 })
 
 app.get('/api/persons/:id', (req, rsp) => {
-    const id = req.params.id 
+    const id = req.params.id
     const person = phonebooks.find(p => p.id === id)
     if (person) {
         rsp.json(person)
     } else {
         rsp.status(404).end()
     }
+})
+
+app.post('/api/persons', (req, rsp) => {
+    const id = String(Math.floor(Math.random() * 1000000))
+
+    const newPerson = {
+        "id": id,
+        "name": req.body.name,
+        "number": req.body.number,
+    }
+    // 不用担心并发问题，nodejs 主线程按事件循环顺序执行
+    phonebooks.push(newPerson)
+
+    rsp.json(newPerson)
+})
+
+app.delete('/api/persons/:id', (req, rsp) => {
+    const id = req.params.id
+    phonebooks = phonebooks.filter(p => p.id !== id)
+    // 无论是否存在该 phonebook 都返回 204
+    rsp.status(204).end()
 })
 
 app.get('/info', (req, rsp) => {
