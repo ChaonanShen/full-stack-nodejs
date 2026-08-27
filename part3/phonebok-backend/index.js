@@ -41,6 +41,15 @@ app.get('/api/persons/:id', (req, rsp) => {
 })
 
 app.post('/api/persons', (req, rsp) => {
+    // 不能只是判断字段是否确实，还有字段是否为''
+    if (!req.body.name || !req.body.number) {
+        return rsp.status(400).json({ error: 'name or number missing' })
+    }
+
+    if (phonebooks.some(p => p.name === req.body.name)) {
+        return rsp.status(400).json({ error: 'name must be unique' })
+    }
+
     const id = String(Math.floor(Math.random() * 1000000))
 
     const newPerson = {
@@ -48,6 +57,7 @@ app.post('/api/persons', (req, rsp) => {
         "name": req.body.name,
         "number": req.body.number,
     }
+
     // 不用担心并发问题，nodejs 主线程按事件循环顺序执行
     phonebooks.push(newPerson)
 
